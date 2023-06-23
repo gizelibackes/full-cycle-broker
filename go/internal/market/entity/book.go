@@ -25,15 +25,39 @@ func NewBook(orderChan chan *Order, orderChanOut chan *Order, wg *sync.WaitGroup
 
 func (b *Book) Trade() {
 
-	heap.Init(buyOrders)
-	heap.Init(sellOrders)
+	// criar hashmap (array associaliva) para separar as filas de compra e vendas por asset
+	// ou seja, cada asset (nubank, petro, etc, deve ter sua propria fila de compra e outra de venda)
+	buyOrders := make(map[string]*OrderQueue)
+	sellOrders := make(map[string]*OrderQueue)
+
+	// fila de compra
+	// buyOrders := NewOrderQueue()
+	// fila de vendas
+	// sellOrders := NewOrderQueue()
 
 	for order := range b.OrdersChan {
+
+		asset := order.Asset.ID
+
+		// heap.Init(buyOrders)
+		// Criar fila de compra para asset (nubank, petro, etc)
+		if buyOrders[asset] == nil {
+			buyOrders[asset] = NewOrderQueue()
+			heap.Init(buyOrders[asset])
+		}
+
+		// heap.Init(sellOrders)
+		// Criar fila de venda para asset (nubank, petro, etc)
+		if sellOrders[asset] == nil {
+			sellOrders[asset] = NewOrderQueue()
+			heap.Init(sellOrders[asset])
+		}
+
 		if order.OrderType == "BUY" {
-			buyOrders.Push(order)
-			if sellOrders.Len() > 0 && sellOrders.Orders[0].Price <= order.Price {
-				sellOrder := sellOrders.Pop().(*Order)
-				if sellOrder.PendingShares > 0 {
+			buyOrders[asset].Push(order)
+			if sellOrders[asset].Len() > 0 && sellOrders[asset].Orders[0].Price <= order.Price {
+				sellOrder := sellOrders[asset].Pop().(*Order)
+				if sellOrder[asset].PendingShares > 0 {
 					transaction := NewTransaction(sellOrder, order, order.Shares, sellOrder.Price)
 					b.AddTransaction(transaction, b.Wg)
 					sellOrder.Transactions = append(sellOrder.Transactions, transaction)
@@ -41,14 +65,14 @@ func (b *Book) Trade() {
 					b.OrdersChanOut <- sellOrder
 					b.OrdersChanOut <- order
 					if sellOrder.PendingShares > 0 {
-						sellOrders.Push(sellOrder)
+						sellOrders[asset].Push(sellOrder)
 					}
 				}
 			}
 		} else if order.OrderType == "SELL" {
-			sellOrders.Push(order)
-			if buyOrders.Len() > 0 && buyOrders.Orders[0].Price >= order.Price {
-				buyorder := buyOrders.Pop().(*Order)
+			sellOrders[asset].Push(order)
+			if buyOrders[asset].Len() > 0 && buyOrders[asset].Orders[0].Price >= order.Price {
+				buyorder := buyOrders[asset].Pop().(*Order)
 				if buyorder.PendingShares > 0 {
 					transaction := NewTransaction(order, buyOrder, order.Shares, buyOrder.Price)
 					b.AddTransaction(transaction, b.Wg)
@@ -57,7 +81,7 @@ func (b *Book) Trade() {
 					b.OrdersChanOut <- buyorder
 					b.OrdersChanOut <- order
 					if buyOrder.PendingShares > 0 {
-						buyOrders.Push(buyorder)
+						buyOrders[asset].Push(buyorder)
 					}
 
 				}
