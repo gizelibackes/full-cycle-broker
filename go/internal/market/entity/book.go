@@ -57,7 +57,7 @@ func (b *Book) Trade() {
 			buyOrders[asset].Push(order)
 			if sellOrders[asset].Len() > 0 && sellOrders[asset].Orders[0].Price <= order.Price {
 				sellOrder := sellOrders[asset].Pop().(*Order)
-				if sellOrder[asset].PendingShares > 0 {
+				if sellOrder.PendingShares > 0 {
 					transaction := NewTransaction(sellOrder, order, order.Shares, sellOrder.Price)
 					b.AddTransaction(transaction, b.Wg)
 					sellOrder.Transactions = append(sellOrder.Transactions, transaction)
@@ -72,16 +72,16 @@ func (b *Book) Trade() {
 		} else if order.OrderType == "SELL" {
 			sellOrders[asset].Push(order)
 			if buyOrders[asset].Len() > 0 && buyOrders[asset].Orders[0].Price >= order.Price {
-				buyorder := buyOrders[asset].Pop().(*Order)
-				if buyorder.PendingShares > 0 {
+				buyOrder := buyOrders[asset].Pop().(*Order)
+				if buyOrder.PendingShares > 0 {
 					transaction := NewTransaction(order, buyOrder, order.Shares, buyOrder.Price)
 					b.AddTransaction(transaction, b.Wg)
 					buyOrder.Transactions = append(buyOrder.Transactions, transaction)
 					order.Transactions = append(order.Transactions, transaction)
-					b.OrdersChanOut <- buyorder
+					b.OrdersChanOut <- buyOrder
 					b.OrdersChanOut <- order
 					if buyOrder.PendingShares > 0 {
-						buyOrders[asset].Push(buyorder)
+						buyOrders[asset].Push(buyOrder)
 					}
 
 				}

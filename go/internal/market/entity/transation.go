@@ -24,5 +24,7 @@ func NewTransaction(sellingOrder *Order, buyingOrder *Order, shares int, price f
 		BuyingOrder:  buyingOrder,
 		Shares:       shares,
 		Price:        price,
+		Total:        total,
+		DateTime:     time.Now(),
 	}
 }

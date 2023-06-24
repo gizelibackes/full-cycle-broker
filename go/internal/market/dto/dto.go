@@ -4,7 +4,7 @@
 package dto
 
 type TradeInput struct {
-	OrderId           string               `jason:"order_id"`
+	OrderID           string               `jason:"order_id"`
 	InvestorID        string               `jason:"investor_id"`
 	AssetID           string               `jason:"asset_id"`
 	CurrentShares     int                  `jason:"current_shares"`
@@ -15,7 +15,7 @@ type TradeInput struct {
 }
 
 type OrderOutput struct {
-	OrderId           string               `jason:"order_id"`
+	OrderID           string               `jason:"order_id"`
 	InvestorID        string               `jason:"investor_id"`
 	AssetID           string               `jason:"asset_id"`
 	OrderType         string               `jason:"order_type"`
@@ -26,7 +26,7 @@ type OrderOutput struct {
 }
 
 type TransactionOutput struct {
-	TransactionId string  `jason:"transaction_id"`
+	TransactionID string  `jason:"transaction_id"`
 	BuyerID       string  `jason:"buyer_id"`
 	SellerID      string  `jason:"seller_id"`
 	AssetID       string  `jason:"asset_id"`

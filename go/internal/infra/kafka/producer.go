@@ -32,9 +32,9 @@ func (p *Producer) Publish(msg interface{}, key []byte, topic string) error {
 	// nome do topico para onde a mensagem vai &topic
 	// Partition: ckafka.PartitionAny , ou seja, kafka pode definir para qual partição ira a mensagem
 	// msg.([]byte), força a mensagem a ser no formato byte
-	message := &kafka.Message{
+	message := &ckafka.Message{
 		TopicPartition: ckafka.TopicPartition{Topic: &topic, Partition: ckafka.PartitionAny},
-		key:            key,
+		Key:            key,
 		Value:          msg.([]byte),
 	}
 

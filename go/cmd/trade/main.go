@@ -10,6 +10,7 @@ import (
 	"github.com/gizelibackes/Full-cycle-HomeBroker/go/internal/market/dto"
 	"github.com/gizelibackes/Full-cycle-HomeBroker/go/internal/market/entity"
 	"github.com/gizelibackes/Full-cycle-HomeBroker/go/internal/market/transformer"
+)
 
 // definir entrypoint da aplicação, ou seja,
 // definir canal de entrada pra receber os dados da order
@@ -27,12 +28,12 @@ func main() {
 	// ckafka = apelido definido para o pacote oficial do kafka
 	kafkaMsgChan := make(chan *ckafka.Message)
 	// criar coneccao com o kafka atraves do docker
-	configMap := &kafka.ConfigMap{
+	configMap := &ckafka.ConfigMap{
 		// alterar etc/host no Mac:
 		// $ sudo nano /etc/hosts
 		// 127.0.0.1       host.docker.internal
 		"bootstrap.services": "host.docker.internal:9094",
-		"group.id":			  "myGroup",
+		"group.id":           "myGroup",
 		"auto.offset.reset":  "earliest",
 	}
 
@@ -46,7 +47,7 @@ func main() {
 	// criar o book passando canal de entrada e canal de saida
 	// recebe do canal do kafka, joga no input, processa joga no output e depois publica no kafka
 	book := entity.NewBook(ordersIn, ordersOut, wg)
-	
+
 	// criar tread para receber os dados das mensagens
 	go book.Trade() // T3
 
@@ -69,7 +70,7 @@ func main() {
 		}
 	}()
 
-	// pegar dados do canal que o book processou, transformar em dado cru, 
+	// pegar dados do canal que o book processou, transformar em dado cru,
 	// e publicar novamente no kafka
 	for res := range ordersOut {
 		output := transformer.TransformOutput(res)
@@ -85,6 +86,5 @@ func main() {
 		// key = []byte("orders")
 		producer.Publish(outputJson, []byte("orders"), "output")
 	}
-
 
 }
